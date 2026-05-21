@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "Memory": {
+      "title": "Memory",
+      "description": "A community memory shared by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "story": { "type": "string" },
+        "neighborhood": { "type": "string" },
+        "author": { "type": "string" },
+        "authorSub": { "type": "string" },
+        "authorImage": { "type": "string" },
+        "era": { "type": "string" },
+        "coordinates": { 
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isUnlocked": { "type": "boolean" },
+        "imageUrl": { "type": "string" },
+        "reactions": { "type": "integer" },
+        "neighborhoodImpact": { "type": "string" },
+        "soundscapeLabel": { "type": "string" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["title", "story", "neighborhood", "author", "era", "coordinates", "timestamp", "isUnlocked", "authorId"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User specific data and settings",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["displayName", "email", "createdAt"]
+    },
+    "SavedMemory": {
+      "title": "Saved Memory",
+      "description": "A reference to a memory saved by a user",
+      "type": "object",
+      "properties": {
+        "memoryId": { "type": "string" },
+        "savedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["memoryId", "savedAt"]
+    }
+  },
+  "firestore": {
+    "memories": {
+      "schema": "Memory",
+      "description": "A collection of shared community memories."
+    },
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data"
+    },
+    "users/{userId}/savedMemories/{memoryId}": {
+      "schema": "SavedMemory",
+      "description": "User's saved memories"
+    }
+  }
+}

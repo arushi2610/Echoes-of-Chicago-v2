@@ -1,0 +1,6 @@
+{
+  "name": "Echoes of Chicago",
+  "description": "An immersive neighborhood memory map of Chicago. Explore personal stories, cultural echoes, and hidden histories layered onto the city's neighborhoods with a cinematic dark UI.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
