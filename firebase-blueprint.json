@@ -13,6 +13,9 @@
         "authorSub": { "type": "string" },
         "authorImage": { "type": "string" },
         "era": { "type": "string" },
+        "category": { "type": "string" },
+        "address": { "type": "string" },
+        "audioUrl": { "type": "string" },
         "coordinates": { 
           "type": "array",
           "items": { "type": "number" },
@@ -27,7 +30,7 @@
         "soundscapeLabel": { "type": "string" },
         "authorId": { "type": "string" }
       },
-      "required": ["title", "story", "neighborhood", "author", "era", "coordinates", "timestamp", "isUnlocked", "authorId"]
+      "required": ["title", "story", "neighborhood", "author", "era", "category", "coordinates", "timestamp", "isUnlocked", "authorId"]
     },
     "UserProfile": {
       "title": "User Profile",

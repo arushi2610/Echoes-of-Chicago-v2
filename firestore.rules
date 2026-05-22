@@ -22,15 +22,20 @@ service cloud.firestore {
 
     // 3. Memory Validation Blueprint
     function isValidMemory(memory) {
-      return memory.keys().hasAll(['title', 'story', 'neighborhood', 'author', 'era', 'coordinates', 'timestamp', 'isUnlocked', 'authorId']) &&
+      return memory.keys().hasAll(['title', 'story', 'neighborhood', 'author', 'era', 'category', 'coordinates', 'timestamp', 'isUnlocked', 'authorId']) &&
              memory.title is string && memory.title.size() <= 100 &&
              memory.story is string && memory.story.size() <= 5000 &&
              memory.neighborhood is string &&
              memory.author is string &&
+             memory.era is string &&
+             memory.category is string &&
              memory.authorId == request.auth.uid &&
              memory.coordinates is list && memory.coordinates.size() == 2 &&
              memory.coordinates[0] is number && memory.coordinates[1] is number &&
-             memory.isUnlocked is bool;
+             memory.isUnlocked is bool &&
+             (!('address' in memory) || memory.address is string) &&
+             (!('audioUrl' in memory) || (memory.audioUrl is string && memory.audioUrl.size() <= 1000000)) &&
+             (!('imageUrl' in memory) || (memory.imageUrl is string && memory.imageUrl.size() <= 1000000));
     }
 
     // 4. Memory Collection Rules

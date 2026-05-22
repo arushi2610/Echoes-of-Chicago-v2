@@ -58,14 +58,18 @@ export default function App() {
   }, []);
 
   const handleSaveMemory = async (newMemory: Omit<Memory, 'id'>) => {
-    if (!user) {
-      await signInWithGoogle();
-      return;
+    let currentUser = user;
+    if (!currentUser) {
+      try {
+        currentUser = await signInWithGoogle();
+      } catch (err) {
+        throw new Error('You must be signed in to store an echo.');
+      }
     }
     const saved = await memoryService.saveMemory({
       ...newMemory,
-      author: user.displayName || 'A Neighbor',
-      authorId: user.uid
+      author: currentUser.displayName || 'A Neighbor',
+      authorId: currentUser.uid
     });
     setMemories(prev => [saved, ...prev]);
     setSelectedMemory(saved);

@@ -54,8 +54,12 @@ export const memoryService = {
 
   saveMemory: async (memoryData: Omit<Memory, 'id'>): Promise<Memory> => {
     try {
+      const cleanData = Object.fromEntries(
+        Object.entries(memoryData).filter(([_, v]) => v !== undefined)
+      );
+
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-        ...memoryData,
+        ...cleanData,
         timestamp: serverTimestamp(),
         authorId: auth.currentUser?.uid || 'anonymous',
         isUnlocked: true
@@ -63,7 +67,7 @@ export const memoryService = {
       
       return {
         id: docRef.id,
-        ...memoryData,
+        ...cleanData,
         timestamp: new Date().toISOString(),
         authorId: auth.currentUser?.uid || 'anonymous',
         isUnlocked: true

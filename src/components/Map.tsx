@@ -30,6 +30,17 @@ const extractColors = (linesStr: string | undefined): string[] => {
   return colors;
 };
 
+const CATEGORY_COLORS: Record<string, string> = {
+  'Food': '#C60C30', // Red
+  'Culture': '#E27EA6', // Pink
+  'Childhood': '#F9E300', // Yellow
+  'Music': '#00A1DE', // Blue
+  'Student Life': '#009B3A', // Green
+  'Nightlife': '#522398', // Purple
+  'Immigration': '#62361B', // Brown
+  'Local History': '#F9461C', // Orange
+};
+
 export const MapView: React.FC<MapViewProps> = ({ 
   onNeighborhoodClick,
   onMemoryClick,
@@ -298,6 +309,8 @@ export const MapView: React.FC<MapViewProps> = ({
         {/* Memory Markers */}
         {filteredMemories.map(memory => {
           const isSelected = memory.id === selectedMemoryId;
+          const markerColor = CATEGORY_COLORS[memory.category] || '#fbbf24'; // Default to amber
+          
           return (
             <Marker
               key={memory.id}
@@ -316,21 +329,25 @@ export const MapView: React.FC<MapViewProps> = ({
               >
                 {/* Glow effect */}
                 <div className={`absolute -inset-4 rounded-full blur-xl transition-all duration-500 opacity-50 group-hover:opacity-100 ${
-                  isSelected ? 'bg-amber-500 scale-150' : 'bg-blue-500 group-hover:bg-amber-400'
-                }`} />
+                  isSelected ? 'scale-150' : ''
+                }`} style={{ backgroundColor: markerColor }} />
                 
-                <div className={`relative p-2 rounded-full border transition-all duration-500 ${
-                  isSelected 
-                    ? 'bg-amber-400 text-black scale-125 border-white shadow-[0_0_20px_rgba(251,191,36,0.8)]' 
-                    : 'bg-zinc-900 text-amber-400 border-amber-400/50 hover:border-amber-400'
-                }`}>
+                <div className={`relative p-2 rounded-full border transition-all duration-500`}
+                  style={{
+                    backgroundColor: isSelected ? markerColor : '#18181b',
+                    color: isSelected ? '#000' : markerColor,
+                    borderColor: isSelected ? '#fff' : markerColor,
+                    boxShadow: isSelected ? `0 0 20px ${markerColor}cc` : 'none'
+                  }}
+                >
                   <MapPin className="w-4 h-4 fill-current" />
                 </div>
 
                 {isSelected && (
                   <motion.div 
                     layoutId="active-ring"
-                    className="absolute -inset-1 rounded-full border border-amber-400 animate-ping pointer-events-none"
+                    className="absolute -inset-1 rounded-full border animate-ping pointer-events-none"
+                    style={{ borderColor: markerColor }}
                   />
                 )}
               </motion.div>

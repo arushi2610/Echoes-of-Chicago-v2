@@ -12,6 +12,7 @@ export interface Memory {
   isUnlocked: boolean;
   address?: string;
   imageUrl?: string;
+  audioUrl?: string;
   reactions?: number;
 }
 

@@ -78,6 +78,43 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
             </p>
           </div>
 
+          {/* Sonic Echo Player */}
+          {memory.audioUrl && (
+            <div className="bg-amber-400/10 border border-amber-400/20 p-4 rounded-3xl flex items-center gap-4 group">
+              <button
+                className="w-12 h-12 flex-shrink-0 bg-amber-400 text-black rounded-full flex items-center justify-center hover:bg-amber-300 transition-colors shadow-[0_0_20px_rgba(251,191,36,0.2)] group-hover:scale-105"
+                onClick={(e) => {
+                  const btn = e.currentTarget;
+                  const audio = btn.nextElementSibling as HTMLAudioElement;
+                  if (audio.paused) {
+                    audio.play();
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+                  } else {
+                    audio.pause();
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 ml-1"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+                  }
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 ml-1"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </button>
+              <audio 
+                src={memory.audioUrl} 
+                onEnded={(e) => {
+                  const audio = e.currentTarget;
+                  const btn = audio.previousElementSibling as HTMLButtonElement;
+                  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 ml-1"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+                }}
+                className="hidden" 
+              />
+              <div className="flex-1">
+                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-[0.2em] mb-1">Sonic Echo</p>
+                <div className="h-1.5 bg-black/40 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-400 w-full opacity-30 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Location Badge */}
           <div className="bg-white/5 p-6 rounded-2xl border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-all duration-500">
             <div className="flex items-center gap-4">
