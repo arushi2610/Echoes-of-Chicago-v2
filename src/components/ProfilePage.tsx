@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, User, Heart, Clock, MapPin, ChevronRight, LogOut, Sparkles } from 'lucide-react';
 import { auth } from '../lib/firebase';
+import { signInWithGoogle } from '../lib/firebase';
 import { Memory } from '../types';
 import { memoryService } from '../services/memoryService';
 
@@ -10,11 +11,11 @@ interface ProfilePageProps {
   onMemoryClick: (memory: Memory) => void;
   memories: Memory[];
   savedMemoryIds: Set<string>;
+  user: any;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick, memories, savedMemoryIds }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick, memories, savedMemoryIds, user }) => {
   const [activeTab, setActiveTab] = useState<'myEchoes' | 'saved'>('myEchoes');
-  const user = auth.currentUser;
 
   const myEchoes = memories.filter(m => m.authorId === user?.uid);
   const savedMemories = memories.filter(m => m.id && savedMemoryIds.has(m.id));
@@ -30,7 +31,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
             <User className="w-10 h-10 text-black" />
           </div>
           <h2 className="text-3xl font-display font-bold uppercase tracking-tight text-white">Join the Community</h2>
-          <p className="text-zinc-500 text-sm leading-relaxed">Sign in to save your favorite echoes and record your own memories for future generations.</p>
+          <p className="text-zinc-500 text-sm leading-relaxed mb-8">Sign in to save your favorite echoes and record your own memories for future generations.</p>
+          <button
+            onClick={signInWithGoogle}
+            className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest text-[10px] rounded-2xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-3"
+          >
+            <Sparkles className="w-4 h-4" />
+            Sign in to Echo
+          </button>
         </div>
       </div>
     );
@@ -44,45 +52,52 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
       className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-2xl flex flex-col"
     >
       {/* Header */}
-      <header className="p-8 flex justify-between items-center bg-white/5 border-b border-white/5">
-        <div className="flex items-center gap-6">
-          <div className="relative group">
-            {user.photoURL ? (
-              <img src={user.photoURL} alt="" className="w-16 h-16 rounded-2xl object-cover ring-2 ring-amber-400/20 group-hover:ring-amber-400/50 transition-all duration-500" />
-            ) : (
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-                <User className="w-8 h-8 text-black" />
+      <header className="px-6 py-6 border-b border-white/5 bg-white/5 lg:px-8">
+        <div className="max-w-6xl mx-auto flex justify-between items-center w-full">
+          <div className="flex items-center gap-4 lg:gap-6">
+            <div className="relative group">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="" className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl object-cover ring-2 ring-amber-400/20 group-hover:ring-amber-400/50 transition-all duration-500" />
+              ) : (
+                <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                  <User className="w-6 h-6 lg:w-8 lg:h-8 text-black" />
+                </div>
+              )}
+              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-amber-400" />
               </div>
-            )}
-            <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <h1 className="text-xl lg:text-2xl font-display font-bold uppercase tracking-tight text-white">{user.displayName}</h1>
             </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-display font-bold uppercase tracking-tight text-white">{user.displayName}</h1>
-            <p className="text-[10px] text-amber-400/60 font-bold uppercase tracking-[0.3em] mt-1">{user.email}</p>
+          
+          <div className="flex items-center gap-2 lg:gap-4">
+            <button 
+              onClick={() => auth.signOut().then(() => onClose())}
+              className="hidden md:flex px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors items-center gap-2"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
+            </button>
+            <button 
+              onClick={() => auth.signOut().then(() => onClose())}
+              className="md:hidden p-3 text-zinc-500 hover:text-white transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={onClose}
+              className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all group"
+            >
+              <X className="w-5 h-5 lg:w-6 lg:h-6 text-zinc-500 group-hover:text-white" />
+            </button>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => auth.signOut().then(() => onClose())}
-            className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors flex items-center gap-2"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign Out
-          </button>
-          <button 
-            onClick={onClose}
-            className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all group"
-          >
-            <X className="w-6 h-6 text-zinc-500 group-hover:text-white" />
-          </button>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto scrollbar-hide px-8 py-12">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <main className="flex-1 overflow-y-auto scrollbar-hide px-6 py-6 pb-24 lg:px-8 lg:py-12">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Sidebar Info */}
           <div className="space-y-12">
             <section className="space-y-6">

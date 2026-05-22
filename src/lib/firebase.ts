@@ -12,8 +12,9 @@ export const signInWithGoogle = async () => {
     try {
         const result = await signInWithPopup(auth, googleProvider);
         return result.user;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error signing in with Google:", error);
+        alert("Sign in was blocked. If you are viewing this in a preview iframe, please use the icon at the top right to open the application in a new tab and try again.");
         throw error;
     }
 };

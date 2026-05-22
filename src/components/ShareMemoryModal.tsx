@@ -454,13 +454,13 @@ export const ShareMemoryModal: React.FC<ShareMemoryModalProps> = ({ onClose, onS
                       onChange={e => setEra(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-[11px] font-bold uppercase tracking-widest focus:outline-none focus:border-amber-400/50 transition-all appearance-none bg-none"
                     >
-                      <option value="Modern Day">Modern Day</option>
-                      <option value="2000s">2000s</option>
-                      <option value="1990s">1990s</option>
-                      <option value="1980s">1980s</option>
-                      <option value="1970s">1970s</option>
-                      <option value="Golden Age">Golden Age (1920-50)</option>
-                      <option value="Historic">Historic Chicago</option>
+                      <option className="bg-zinc-900 text-white" value="Modern Day">Modern Day</option>
+                      <option className="bg-zinc-900 text-white" value="2000s">2000s</option>
+                      <option className="bg-zinc-900 text-white" value="1990s">1990s</option>
+                      <option className="bg-zinc-900 text-white" value="1980s">1980s</option>
+                      <option className="bg-zinc-900 text-white" value="1970s">1970s</option>
+                      <option className="bg-zinc-900 text-white" value="Golden Age">Golden Age (1920-50)</option>
+                      <option className="bg-zinc-900 text-white" value="Historic">Historic Chicago</option>
                     </select>
                   </div>
                 </div>

@@ -116,29 +116,6 @@ export default function App() {
           onSaveToggle={handleSaveToCollection}
         />
 
-        <AnimatePresence>
-          {isProfileOpen && (
-            <ProfilePage 
-              onClose={() => {
-                setIsProfileOpen(false);
-                setMobileTab('map');
-              }}
-              onMemoryClick={(memory) => setSelectedMemory(memory)}
-              memories={memories}
-              savedMemoryIds={savedMemoryIds}
-            />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {isShareModalOpen && (
-            <ShareMemoryModal 
-              onClose={() => setIsShareModalOpen(false)}
-              onSave={handleSaveMemory}
-            />
-          )}
-        </AnimatePresence>
-
         {/* Floating Action Button */}
         <div className="absolute bottom-24 right-4 md:bottom-10 md:right-10 z-30 group">
           <AnimatePresence>
@@ -182,8 +159,29 @@ export default function App() {
         </div>
       </main>
 
+      <AnimatePresence>
+        {isProfileOpen && (
+          <ProfilePage 
+            onClose={() => setIsProfileOpen(false)}
+            onMemoryClick={(memory) => setSelectedMemory(memory)}
+            memories={memories}
+            savedMemoryIds={savedMemoryIds}
+            user={user}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isShareModalOpen && (
+          <ShareMemoryModal 
+            onClose={() => setIsShareModalOpen(false)}
+            onSave={handleSaveMemory}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Mobile Tab Navigation */}
-      <div className="flex md:hidden absolute bottom-0 left-0 right-0 h-[72px] bg-black/90 backdrop-blur-md border-t border-white/10 z-40 items-center justify-around px-4 pb-safe">
+      <div className="flex md:hidden absolute bottom-0 left-0 right-0 h-[72px] bg-black/90 backdrop-blur-md border-t border-white/10 z-[70] items-center justify-around px-4 pb-safe">
         <button 
           onClick={() => { setMobileTab('list'); setIsProfileOpen(false); }}
           className={`flex flex-col items-center justify-center gap-1.5 w-1/3 h-full ${mobileTab === 'list' && !isProfileOpen ? 'text-amber-400' : 'text-zinc-500 hover:text-white'}`}
@@ -199,7 +197,7 @@ export default function App() {
           <span className="text-[10px] font-bold uppercase tracking-widest">Map</span>
         </button>
         <button 
-          onClick={() => { setMobileTab('profile'); setIsProfileOpen(true); }}
+          onClick={() => setIsProfileOpen(true)}
           className={`flex flex-col items-center justify-center gap-1.5 w-1/3 h-full ${isProfileOpen ? 'text-amber-400' : 'text-zinc-500 hover:text-white'}`}
         >
           <User className="w-5 h-5" />
