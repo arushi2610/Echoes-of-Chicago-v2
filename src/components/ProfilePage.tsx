@@ -8,22 +8,16 @@ import { memoryService } from '../services/memoryService';
 interface ProfilePageProps {
   onClose: () => void;
   onMemoryClick: (memory: Memory) => void;
+  memories: Memory[];
+  savedMemoryIds: Set<string>;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick }) => {
-  const [savedMemories, setSavedMemories] = useState<Memory[]>([]);
-  const [loading, setLoading] = useState(true);
+export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick, memories, savedMemoryIds }) => {
+  const [activeTab, setActiveTab] = useState<'myEchoes' | 'saved'>('myEchoes');
   const user = auth.currentUser;
 
-  useEffect(() => {
-    const fetchSaved = async () => {
-      setLoading(true);
-      const memories = await memoryService.getSavedMemories();
-      setSavedMemories(memories);
-      setLoading(false);
-    };
-    fetchSaved();
-  }, []);
+  const myEchoes = memories.filter(m => m.authorId === user?.uid);
+  const savedMemories = memories.filter(m => m.id && savedMemoryIds.has(m.id));
 
   if (!user) {
     return (
@@ -114,61 +108,125 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
 
           {/* Saved Memories List */}
           <div className="lg:col-span-2 space-y-8">
-            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.3em]">Saved Collection</h3>
+            <div className="flex items-center gap-6 border-b border-white/10 pb-4">
+              <button 
+                onClick={() => setActiveTab('myEchoes')}
+                className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-colors relative pb-4 -mb-4 ${activeTab === 'myEchoes' ? 'text-amber-400' : 'text-zinc-500 hover:text-white'}`}
+              >
+                My Echoes
+                {activeTab === 'myEchoes' && (
+                  <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400" />
+                )}
+              </button>
+              <button 
+                onClick={() => setActiveTab('saved')}
+                className={`text-[10px] font-bold uppercase tracking-[0.3em] transition-colors relative pb-4 -mb-4 ${activeTab === 'saved' ? 'text-amber-400' : 'text-zinc-500 hover:text-white'}`}
+              >
+                Saved Collection
+                {activeTab === 'saved' && (
+                  <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400" />
+                )}
+              </button>
+            </div>
             
-            {loading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-24 bg-white/5 rounded-3xl animate-pulse" />
-                ))}
-              </div>
-            ) : savedMemories.length > 0 ? (
-              <div className="space-y-4">
-                {savedMemories.map(memory => (
-                  <button
-                    key={memory.id}
-                    onClick={() => {
-                      onMemoryClick(memory);
-                      onClose();
-                    }}
-                    className="w-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 p-6 rounded-[2rem] flex items-center gap-6 transition-all duration-500 group text-left"
-                  >
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-900 flex-shrink-0 border border-white/10">
-                      {memory.imageUrl ? (
-                        <img src={memory.imageUrl} alt="" className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" />
-                      ) : (
-                        <div className="w-full h-full bg-amber-400/10 flex items-center justify-center">
-                          <MapPin className="w-6 h-6 text-amber-400/40" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-amber-400 px-1.5 py-0.5 bg-amber-400/10 rounded">
-                          {memory.category}
-                        </span>
-                        <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">
-                          {memory.neighborhood}
-                        </span>
+            {activeTab === 'saved' ? (
+              savedMemories.length > 0 ? (
+                <div className="space-y-4">
+                  {savedMemories.map(memory => (
+                    <button
+                      key={memory.id}
+                      onClick={() => {
+                        onMemoryClick(memory);
+                        onClose();
+                      }}
+                      className="w-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 p-6 rounded-[2rem] flex items-center gap-6 transition-all duration-500 group text-left"
+                    >
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-900 flex-shrink-0 border border-white/10">
+                        {memory.imageUrl ? (
+                          <img src={memory.imageUrl} alt="" className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" />
+                        ) : (
+                          <div className="w-full h-full bg-amber-400/10 flex items-center justify-center">
+                            <MapPin className="w-6 h-6 text-amber-400/40" />
+                          </div>
+                        )}
                       </div>
-                      <h4 className="text-lg font-display font-bold text-white truncate group-hover:text-amber-400 transition-colors uppercase tracking-tight">
-                        {memory.title}
-                      </h4>
-                    </div>
-                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-amber-400 group-hover:border-amber-400 transition-all duration-500">
-                      <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-black" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                <div className="w-16 h-16 bg-white/5 rounded-full mx-auto flex items-center justify-center mb-6">
-                  <Heart className="w-8 h-8 text-zinc-700" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-[8px] font-black uppercase tracking-widest text-amber-400 px-1.5 py-0.5 bg-amber-400/10 rounded">
+                            {memory.category}
+                          </span>
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">
+                            {memory.neighborhood}
+                          </span>
+                        </div>
+                        <h4 className="text-lg font-display font-bold text-white truncate group-hover:text-amber-400 transition-colors uppercase tracking-tight">
+                          {memory.title}
+                        </h4>
+                      </div>
+                      <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-amber-400 group-hover:border-amber-400 transition-all duration-500">
+                        <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-black" />
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <h4 className="text-xl font-display font-medium text-zinc-500 mb-2">Your collection is empty</h4>
-                <p className="text-sm text-zinc-700">Explore the map and save memories that resonate with you.</p>
-              </div>
+              ) : (
+                <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+                  <div className="w-16 h-16 bg-white/5 rounded-full mx-auto flex items-center justify-center mb-6">
+                    <Heart className="w-8 h-8 text-zinc-700" />
+                  </div>
+                  <h4 className="text-xl font-display font-medium text-zinc-500 mb-2">Your collection is empty</h4>
+                  <p className="text-sm text-zinc-700">Explore the map and save memories that resonate with you.</p>
+                </div>
+              )
+            ) : (
+              myEchoes.length > 0 ? (
+                <div className="space-y-4">
+                  {myEchoes.map(memory => (
+                    <button
+                      key={memory.id}
+                      onClick={() => {
+                        onMemoryClick(memory);
+                        onClose();
+                      }}
+                      className="w-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 p-6 rounded-[2rem] flex items-center gap-6 transition-all duration-500 group text-left"
+                    >
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-900 flex-shrink-0 border border-white/10">
+                        {memory.imageUrl ? (
+                          <img src={memory.imageUrl} alt="" className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" />
+                        ) : (
+                          <div className="w-full h-full bg-amber-400/10 flex items-center justify-center">
+                            <MapPin className="w-6 h-6 text-amber-400/40" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-[8px] font-black uppercase tracking-widest text-amber-400 px-1.5 py-0.5 bg-amber-400/10 rounded">
+                            {memory.category}
+                          </span>
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">
+                            {memory.neighborhood}
+                          </span>
+                        </div>
+                        <h4 className="text-lg font-display font-bold text-white truncate group-hover:text-amber-400 transition-colors uppercase tracking-tight">
+                          {memory.title}
+                        </h4>
+                      </div>
+                      <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-amber-400 group-hover:border-amber-400 transition-all duration-500">
+                        <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-black" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+                  <div className="w-16 h-16 bg-white/5 rounded-full mx-auto flex items-center justify-center mb-6">
+                    <User className="w-8 h-8 text-zinc-700" />
+                  </div>
+                  <h4 className="text-xl font-display font-medium text-zinc-500 mb-2">You haven't shared any Echoes yet</h4>
+                  <p className="text-sm text-zinc-700">Record a unique story to share it with your neighbors.</p>
+                </div>
+              )
             )}
           </div>
         </div>

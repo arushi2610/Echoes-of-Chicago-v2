@@ -281,7 +281,7 @@ export const MapView: React.FC<MapViewProps> = ({
         onMouseMove={onHover}
         onClick={onClick}
       >
-        <NavigationControl position="top-right" />
+        <NavigationControl position="top-left" style={{ marginTop: '50px', marginLeft: '16px' }} />
 
         {neighborhoods && (
           <Source id="neighborhoods" type="geojson" data={neighborhoods}>

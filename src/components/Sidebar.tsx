@@ -86,24 +86,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="w-80 h-full bg-black border-r border-white/5 flex flex-col z-20 shadow-2xl relative">
+    <div className="w-full md:w-80 h-full bg-black md:border-r border-white/5 flex flex-col z-20 shadow-2xl relative pb-16 md:pb-0">
       {/* Header */}
-      <div className="p-8 border-b border-white/5 bg-gradient-to-b from-zinc-950 to-black">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.3)]">
-            <Feather className="w-6 h-6 text-black" />
+      <div className="p-4 md:p-8 pb-4 md:pb-8 border-b border-white/5 bg-gradient-to-b from-zinc-950 to-black shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-amber-400 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.3)]">
+            <Feather className="w-4 h-4 md:w-6 md:h-6 text-black" />
           </div>
           <div>
-            <h1 className="text-lg font-display font-bold tracking-tight text-white uppercase leading-none flex items-baseline gap-1.5">
+            <h1 className="text-base md:text-lg font-display font-bold tracking-tight text-white uppercase leading-none flex items-baseline gap-1.5">
               Echoes
             </h1>
-            <p className="text-[10px] text-amber-400/60 uppercase tracking-[0.2em] font-bold mt-1">of Chicago</p>
+            <p className="text-[8px] md:text-[10px] text-amber-400/60 uppercase tracking-[0.2em] font-bold mt-1">of Chicago</p>
           </div>
         </div>
       </div>
 
       {/* Search & Filters */}
-      <div className="p-6 space-y-6 flex-1 overflow-y-auto scrollbar-hide">
+      <div className="px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6 flex-1 overflow-y-auto scrollbar-hide">
         <div className="relative group z-30">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-amber-400 transition-colors" />
           <input 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Memory } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calendar, User, Tag, MapPin, Feather } from 'lucide-react';
+import { X, Calendar, User, Tag, MapPin, Feather, ArrowLeft } from 'lucide-react';
 
 interface MemoryPanelProps {
   memory: Memory | null;
@@ -13,6 +13,25 @@ interface MemoryPanelProps {
 export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSaved, onSaveToggle }) => {
   if (!memory) return null;
 
+  const handleShare = async () => {
+    if (!memory) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: memory.title,
+          text: `Check out this Echo from ${memory.neighborhood}: ${memory.title}`,
+          url: window.location.href, // or perhaps a specific link to the memory if supported
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      // Fallback if Web Share API is not supported
+      alert('Sharing is not supported on this device/browser.');
+    }
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -20,7 +39,7 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed top-6 right-6 bottom-6 w-[28rem] glass border-white/10 rounded-3xl shadow-[0_50px_100px_rgba(0,0,0,1)] p-0 z-40 text-white overflow-hidden flex flex-col pointer-events-auto"
+        className="fixed top-0 bottom-[72px] left-0 right-0 md:top-6 md:bottom-6 md:right-6 md:left-auto md:w-[28rem] glass border-white/10 md:rounded-3xl rounded-t-3xl shadow-[0_50px_100px_rgba(0,0,0,1)] p-0 z-40 text-white overflow-hidden flex flex-col pointer-events-auto"
       >
         {/* Memory Image Header */}
         <div className="relative h-48 bg-zinc-900 overflow-hidden">
@@ -35,7 +54,15 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
           
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full border border-white/10 transition-all group z-50"
+            className="md:hidden absolute top-4 left-4 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full border border-white/10 transition-all group z-50 flex items-center gap-2 pr-4"
+          >
+            <ArrowLeft className="w-5 h-5 text-zinc-400 group-hover:text-white" />
+            <span className="text-[10px] font-bold text-zinc-400 group-hover:text-white uppercase tracking-widest">Back</span>
+          </button>
+          
+          <button
+            onClick={onClose}
+            className="hidden md:flex absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full border border-white/10 transition-all group z-50"
           >
             <X className="w-5 h-5 text-zinc-400 group-hover:text-white" />
           </button>
@@ -143,7 +170,10 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
             >
               {isSaved ? 'Saved to Collection' : 'Save to Collection'}
             </button>
-            <button className="flex-1 py-3 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all">
+            <button 
+              onClick={handleShare}
+              className="flex-1 py-3 px-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
+            >
               Share Echo
             </button>
           </div>
