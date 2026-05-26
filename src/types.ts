@@ -1,3 +1,11 @@
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  timestamp: string;
+}
+
 export interface Memory {
   id: string;
   title: string;
@@ -14,6 +22,8 @@ export interface Memory {
   imageUrl?: string;
   audioUrl?: string;
   reactions?: number;
+  isPrivate?: boolean;
+  comments?: Comment[];
 }
 
 export interface NeighborhoodFeature {

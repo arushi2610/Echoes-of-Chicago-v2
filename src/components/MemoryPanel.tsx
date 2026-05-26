@@ -1,7 +1,9 @@
-import React from 'react';
-import { Memory } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Memory, Comment } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calendar, User, Tag, MapPin, Feather, ArrowLeft } from 'lucide-react';
+import { X, Calendar, User, Tag, MapPin, Feather, ArrowLeft, MessageSquare, Send, Heart } from 'lucide-react';
+import { auth } from '../lib/firebase';
+import { memoryService } from '../services/memoryService';
 
 interface MemoryPanelProps {
   memory: Memory | null;
@@ -11,7 +13,55 @@ interface MemoryPanelProps {
 }
 
 export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSaved, onSaveToggle }) => {
+  const [commentText, setCommentText] = useState('');
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
+  const [reactions, setReactions] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasLiked, setHasLiked] = useState(false);
+  const currentUser = auth.currentUser;
+
+  useEffect(() => {
+    if (memory) {
+      setLocalComments(memory.comments || []);
+      setReactions(memory.reactions || 0);
+      setHasLiked(false);
+    }
+  }, [memory]);
+
   if (!memory) return null;
+
+  const handleLike = async () => {
+    if (!currentUser) {
+      alert('Sign in to like memories');
+      return;
+    }
+    if (hasLiked || !memory.id) return;
+    
+    try {
+      await memoryService.likeMemory(memory.id);
+      setReactions(prev => prev + 1);
+      setHasLiked(true);
+    } catch (err) {
+      console.error('Failed to like memory:', err);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim() || !currentUser || !memory.id) return;
+
+    setIsSubmitting(true);
+    try {
+      const newComment = await memoryService.addComment(memory.id, commentText);
+      setLocalComments(prev => [...prev, newComment]);
+      setCommentText('');
+    } catch (err) {
+      console.error('Failed to add comment:', err);
+      alert('Failed to add comment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleShare = async () => {
     if (!memory) return;
@@ -158,8 +208,77 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
             </div>
           </div>
 
+          {/* Comments Section */}
+          <div className="border-t border-white/10 pt-8 mt-8">
+            <div className="flex items-center gap-2 mb-6">
+              <MessageSquare className="w-5 h-5 text-zinc-500" />
+              <h3 className="text-xl font-display font-bold text-white uppercase tracking-tight">Thoughts & Echoes</h3>
+            </div>
+
+            <div className="space-y-6 mb-6">
+              {localComments.length === 0 ? (
+                <p className="text-sm text-zinc-500 italic">No thoughts shared yet. Be the first to leave an echo.</p>
+              ) : (
+                localComments.map(comment => (
+                  <div key={comment.id} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-zinc-400" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-white tracking-widest uppercase">{comment.authorName}</span>
+                        <span className="text-[10px] text-zinc-600">{new Date(comment.timestamp).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-sm text-zinc-300 leading-relaxed font-serif">{comment.text}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {currentUser ? (
+              <form onSubmit={handleAddComment} className="flex items-start gap-3">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Share your thoughts on this memory..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-amber-400/50 transition-all"
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="submit"
+                  disabled={!commentText.trim() || isSubmitting}
+                  className="bg-amber-400 hover:bg-amber-300 disabled:opacity-50 disabled:hover:bg-amber-400 text-black px-4 py-3 rounded-xl transition-all flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </form>
+            ) : (
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-center">
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Sign in to leave a thought</p>
+              </div>
+            )}
+          </div>
+
           {/* Reactions or Interaction */}
-          <div className="flex items-center gap-4 pt-4">
+          <div className="flex items-center justify-between pt-4 mb-4">
+            <button 
+              onClick={handleLike}
+              disabled={hasLiked}
+              className={`flex items-center gap-2 group transition-colors ${hasLiked ? 'text-amber-400' : 'text-zinc-400 hover:text-amber-400'}`}
+            >
+              <div className={`p-3 rounded-xl border transition-colors ${hasLiked ? 'bg-amber-400/20 border-amber-400/50' : 'bg-white/5 border-white/10 group-hover:border-amber-400/50 group-hover:bg-amber-400/10'}`}>
+                <Heart className={`w-5 h-5 ${hasLiked ? 'fill-current' : ''}`} />
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1">Like Echo</span>
+                <span className="text-xs font-medium text-white">{reactions} reactions</span>
+              </div>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 pt-4 border-t border-white/10">
             <button 
               onClick={() => onSaveToggle?.(memory.id!)}
               className={`flex-1 py-3 px-6 border rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${

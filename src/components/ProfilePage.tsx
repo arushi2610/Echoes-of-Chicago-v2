@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, User, Heart, Clock, MapPin, ChevronRight, LogOut, Sparkles } from 'lucide-react';
+import { X, User, Heart, Clock, MapPin, ChevronRight, LogOut, Sparkles, Lock, Globe, Mic } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { signInWithGoogle } from '../lib/firebase';
 import { Memory } from '../types';
@@ -112,10 +112,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
                 </div>
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5 group hover:bg-white/10 transition-all duration-500">
                   <div className="w-10 h-10 rounded-2xl bg-blue-500 flex items-center justify-center mb-4 shadow-[0_10px_30px_rgba(59,130,246,0.2)]">
-                    <Clock className="w-5 h-5 text-white" />
+                    <Mic className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-display font-bold text-white mb-1">Modern</p>
-                  <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Era Preference</p>
+                  <p className="text-2xl font-display font-bold text-white mb-1">{myEchoes.length}</p>
+                  <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Echoes Shared</p>
+                </div>
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5 group hover:bg-white/10 transition-all duration-500 col-span-2">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-zinc-800 flex items-center justify-center border border-white/10">
+                      <Clock className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-display font-bold text-white mb-0.5">Community Member</p>
+                      <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">Since {new Date().getFullYear()}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -170,9 +181,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
                           <span className="text-[8px] font-black uppercase tracking-widest text-amber-400 px-1.5 py-0.5 bg-amber-400/10 rounded">
                             {memory.category}
                           </span>
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 truncate">
                             {memory.neighborhood}
                           </span>
+                          {memory.isPrivate && (
+                            <span className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-zinc-500 ml-auto whitespace-nowrap">
+                              <Lock className="w-2.5 h-2.5" />
+                              Private
+                            </span>
+                          )}
                         </div>
                         <h4 className="text-lg font-display font-bold text-white truncate group-hover:text-amber-400 transition-colors uppercase tracking-tight">
                           {memory.title}
@@ -219,9 +236,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
                           <span className="text-[8px] font-black uppercase tracking-widest text-amber-400 px-1.5 py-0.5 bg-amber-400/10 rounded">
                             {memory.category}
                           </span>
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-600 truncate">
                             {memory.neighborhood}
                           </span>
+                          {memory.isPrivate && (
+                            <span className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-zinc-500 ml-auto whitespace-nowrap">
+                              <Lock className="w-2.5 h-2.5" />
+                              Private
+                            </span>
+                          )}
                         </div>
                         <h4 className="text-lg font-display font-bold text-white truncate group-hover:text-amber-400 transition-colors uppercase tracking-tight">
                           {memory.title}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Feather, MapPin, Sparkles, ChevronDown, Camera, Upload, Loader2, Map as MapIcon, Mic, Square, Trash2, Play, Pause } from 'lucide-react';
+import { X, Feather, MapPin, Sparkles, ChevronDown, Camera, Upload, Loader2, Map as MapIcon, Mic, Square, Trash2, Play, Pause, Lock, Globe } from 'lucide-react';
 import { STORY_CATEGORIES, CHICAGO_COMMUNITY_AREAS } from '../constants';
 import { Memory } from '../types';
 
@@ -79,6 +79,7 @@ export const ShareMemoryModal: React.FC<ShareMemoryModalProps> = ({ onClose, onS
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [era, setEra] = useState('Modern Day');
   const [category, setCategory] = useState(STORY_CATEGORIES[0]);
+  const [isPrivate, setIsPrivate] = useState(false);
   
   const [errorMsg, setErrorMsg] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -232,14 +233,28 @@ export const ShareMemoryModal: React.FC<ShareMemoryModalProps> = ({ onClose, onS
     setErrorMsg('');
 
     try {
-      // Default: Small randomization within a broad Chicago area if no address
-      let coords: [number, number] = [41.8781 + (Math.random() - 0.5) * 0.1, -87.6298 + (Math.random() - 0.5) * 0.1];
+      let coords: [number, number] = [41.8781 + (Math.random() - 0.5) * 0.1, -87.6298 - (Math.random() * 0.1)];
       
       if (selectedCoords) {
         coords = selectedCoords;
       } else if (address) {
         const geoCoords = await geocodeAddress(address);
-        if (geoCoords) coords = geoCoords;
+        if (geoCoords) {
+          // slight jitter for duplicate addresses
+          coords = [geoCoords[0] + (Math.random() - 0.5) * 0.0005, geoCoords[1] + (Math.random() - 0.5) * 0.0005];
+        }
+      } else if (neighborhood) {
+        const geoCoords = await geocodeAddress(`${neighborhood} neighborhood`);
+        if (geoCoords) {
+          // larger jitter within the neighborhood (approx 500m - 1km radius)
+          coords = [geoCoords[0] + (Math.random() - 0.5) * 0.015, geoCoords[1] - (Math.random() * 0.015)];
+        } else {
+           // fallback to another api call if "neighborhood" word breaks it
+           const fallbackGeoCoords = await geocodeAddress(neighborhood);
+           if (fallbackGeoCoords) {
+               coords = [fallbackGeoCoords[0] + (Math.random() - 0.5) * 0.015, fallbackGeoCoords[1] - (Math.random() * 0.015)];
+           }
+        }
       }
 
       await onSave({
@@ -255,7 +270,8 @@ export const ShareMemoryModal: React.FC<ShareMemoryModalProps> = ({ onClose, onS
         timestamp: new Date().toISOString(),
         coordinates: coords,
         isUnlocked: true,
-        authorId: 'anonymous'
+        authorId: 'anonymous',
+        isPrivate
       });
       onClose();
     } catch (err) {
@@ -548,6 +564,21 @@ export const ShareMemoryModal: React.FC<ShareMemoryModalProps> = ({ onClose, onS
                 </div>
 
                 <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setIsPrivate(!isPrivate)}>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold uppercase tracking-widest text-white flex items-center gap-2">
+                        {isPrivate ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Globe className="w-3.5 h-3.5 text-zinc-400" />}
+                        {isPrivate ? 'Private Echo' : 'Public Echo'}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 mt-1">
+                        {isPrivate ? 'Only visible to you on your map and profile.' : 'Visible to everyone in the neighborhood.'}
+                      </span>
+                    </div>
+                    <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isPrivate ? 'bg-amber-400' : 'bg-white/10'}`}>
+                      <div className={`w-4 h-4 rounded-full bg-white transition-transform ${isPrivate ? 'translate-x-4 bg-black' : ''}`} />
+                    </div>
+                  </div>
+
                   {errorMsg && (
                     <div className="text-red-400 text-xs text-center font-bold tracking-wider px-2 p-2 bg-red-400/10 rounded-xl border border-red-400/20">
                       {errorMsg}

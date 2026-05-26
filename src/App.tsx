@@ -76,11 +76,13 @@ export default function App() {
     setSelectedMemory(saved);
   };
 
+  const visibleMemories = memories.filter(m => !m.isPrivate || (user && m.authorId === user.uid));
+
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] w-screen overflow-hidden bg-black text-white font-sans selection:bg-amber-400 selection:text-black">
       <div className={`${mobileTab === 'list' ? 'flex' : 'hidden'} md:flex h-full w-full md:w-auto relative z-20`}>
         <Sidebar 
-          memories={memories.filter(m => {
+          memories={visibleMemories.filter(m => {
             const categoryMatch = !activeCategory || m.category === activeCategory;
             const searchMatch = !searchQuery || 
               m.neighborhood.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -102,7 +104,7 @@ export default function App() {
       <main className={`flex-1 relative bg-black ${mobileTab === 'map' ? 'block' : 'hidden'} md:block h-full`}>
         <MapView 
           onMemoryClick={(memory) => setSelectedMemory(memory)}
-          memories={memories}
+          memories={visibleMemories}
           selectedMemoryId={selectedMemory?.id}
           filterCategory={activeCategory || undefined}
           searchQuery={searchQuery}

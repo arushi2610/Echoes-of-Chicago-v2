@@ -35,7 +35,9 @@ service cloud.firestore {
              memory.isUnlocked is bool &&
              (!('address' in memory) || memory.address is string) &&
              (!('audioUrl' in memory) || (memory.audioUrl is string && memory.audioUrl.size() <= 1000000)) &&
-             (!('imageUrl' in memory) || (memory.imageUrl is string && memory.imageUrl.size() <= 1000000));
+             (!('imageUrl' in memory) || (memory.imageUrl is string && memory.imageUrl.size() <= 1000000)) &&
+             (!('isPrivate' in memory) || memory.isPrivate is bool) &&
+             (!('comments' in memory) || memory.comments is list);
     }
 
     // 4. Memory Collection Rules
@@ -47,10 +49,16 @@ service cloud.firestore {
                     && isValidMemory(request.resource.data)
                     && request.resource.data.timestamp == request.time;
 
-      allow update: if isOwner(resource.data.authorId)
+      allow update: if (isOwner(resource.data.authorId)
                     && isValidMemory(request.resource.data)
                     && request.resource.data.authorId == resource.data.authorId
-                    && request.resource.data.timestamp == resource.data.timestamp; // Immutable timestamp
+                    && request.resource.data.timestamp == resource.data.timestamp)
+                    ||
+                    (isSignedIn() 
+                    && request.resource.data.diff(resource.data).affectedKeys().hasAny(['comments', 'reactions'])
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['comments', 'reactions'])
+                    && (!('comments' in request.resource.data.diff(resource.data).affectedKeys()) || request.resource.data.comments is list)
+                    && (!('reactions' in request.resource.data.diff(resource.data).affectedKeys()) || request.resource.data.reactions is number));
 
       allow delete: if isOwner(resource.data.authorId);
     }
