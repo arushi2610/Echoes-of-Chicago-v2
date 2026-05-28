@@ -246,13 +246,13 @@ export const ShareMemoryModal: React.FC<ShareMemoryModalProps> = ({ onClose, onS
       } else if (neighborhood) {
         const geoCoords = await geocodeAddress(`${neighborhood} neighborhood`);
         if (geoCoords) {
-          // larger jitter within the neighborhood (approx 500m - 1km radius)
-          coords = [geoCoords[0] + (Math.random() - 0.5) * 0.015, geoCoords[1] - (Math.random() * 0.015)];
+          // strict very small jitter within the neighborhood (approx 100m radius) so it doesn't leave the area
+          coords = [geoCoords[0] + (Math.random() - 0.5) * 0.002, geoCoords[1] + (Math.random() - 0.5) * 0.002];
         } else {
            // fallback to another api call if "neighborhood" word breaks it
            const fallbackGeoCoords = await geocodeAddress(neighborhood);
            if (fallbackGeoCoords) {
-               coords = [fallbackGeoCoords[0] + (Math.random() - 0.5) * 0.015, fallbackGeoCoords[1] - (Math.random() * 0.015)];
+               coords = [fallbackGeoCoords[0] + (Math.random() - 0.5) * 0.002, fallbackGeoCoords[1] + (Math.random() - 0.5) * 0.002];
            }
         }
       }

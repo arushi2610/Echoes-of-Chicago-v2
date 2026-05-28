@@ -10,6 +10,7 @@ import { auth, signInWithGoogle } from './lib/firebase';
 import { onAuthStateChanged, User as FirebaseAuthUser } from 'firebase/auth';
 import { Plus, Sparkles, List, Map as MapIcon, Feather, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useMap } from 'react-map-gl/maplibre';
 
 export default function App() {
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
@@ -21,6 +22,19 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [savedMemoryIds, setSavedMemoryIds] = useState<Set<string>>(new Set());
   const [mobileTab, setMobileTab] = useState<'map' | 'list'>('map');
+  const { current: map } = useMap();
+
+  const handleMemoryClick = (memory: Memory) => {
+    setSelectedMemory(memory);
+    setMobileTab('map');
+    if (map) {
+      map.flyTo({
+        center: [memory.coordinates[1], memory.coordinates[0]],
+        zoom: 15,
+        duration: 1500
+      });
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -76,6 +90,19 @@ export default function App() {
     setSelectedMemory(saved);
   };
 
+  const handleDeleteMemory = async (memoryId: string) => {
+    try {
+      await memoryService.deleteMemory(memoryId);
+      setMemories(prev => prev.filter(m => m.id !== memoryId));
+      if (selectedMemory?.id === memoryId) {
+        setSelectedMemory(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete echo:', err);
+      alert('Failed to delete echo.');
+    }
+  };
+
   const visibleMemories = memories.filter(m => !m.isPrivate || (user && m.authorId === user.uid));
 
   return (
@@ -89,10 +116,7 @@ export default function App() {
               m.title.toLowerCase().includes(searchQuery.toLowerCase());
             return categoryMatch && searchMatch;
           })}
-          onMemoryClick={(memory) => {
-            setSelectedMemory(memory);
-            setMobileTab('map');
-          }}
+          onMemoryClick={handleMemoryClick}
           selectedMemoryId={selectedMemory?.id}
           onSearchChange={setSearchQuery}
           onCategoryToggle={(cat) => setActiveCategory(cat === activeCategory ? null : cat)}
@@ -103,7 +127,7 @@ export default function App() {
       
       <main className={`flex-1 relative bg-black ${mobileTab === 'map' ? 'block' : 'hidden'} md:block h-full`}>
         <MapView 
-          onMemoryClick={(memory) => setSelectedMemory(memory)}
+          onMemoryClick={handleMemoryClick}
           memories={visibleMemories}
           selectedMemoryId={selectedMemory?.id}
           filterCategory={activeCategory || undefined}
@@ -116,6 +140,10 @@ export default function App() {
           onClose={() => setSelectedMemory(null)}
           isSaved={selectedMemory ? savedMemoryIds.has(selectedMemory.id) : false}
           onSaveToggle={handleSaveToCollection}
+          onDelete={handleDeleteMemory}
+          onLike={(id) => {
+            setMemories(prev => prev.map(m => m.id === id ? { ...m, reactions: (m.reactions || 0) + 1 } : m));
+          }}
         />
 
         {/* Floating Action Button */}
@@ -165,7 +193,7 @@ export default function App() {
         {isProfileOpen && (
           <ProfilePage 
             onClose={() => setIsProfileOpen(false)}
-            onMemoryClick={(memory) => setSelectedMemory(memory)}
+            onMemoryClick={handleMemoryClick}
             memories={memories}
             savedMemoryIds={savedMemoryIds}
             user={user}

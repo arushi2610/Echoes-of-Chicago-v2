@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import Map, { Marker, Source, Layer, NavigationControl, LayerProps } from 'react-map-gl/maplibre';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import Map, { Marker, Source, Layer, NavigationControl, LayerProps, MapRef } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { CTA_STATIONS_URL, CTA_LINES_URL, NEIGHBORHOODS_URL } from '../constants';
 import { StationFeature, Memory } from '../types';

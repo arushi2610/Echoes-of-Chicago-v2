@@ -35,11 +35,57 @@ export const memoryService = {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy('timestamp', 'desc'));
       const snapshot = await getDocs(q);
-      const dbMemories = snapshot.docs.map(doc => {
-        const data = doc.data();
+      
+      const neighborhoodCoords: Record<string, [number, number]> = {
+        "Pilsen": [41.8563, -87.6620],
+        "Chinatown": [41.8510, -87.6338],
+        "Lincoln Park": [41.9214, -87.6513],
+        "Wicker Park": [41.9088, -87.6776],
+        "Bronzeville": [41.8267, -87.6180],
+        "Hyde Park": [41.7943, -87.5907],
+        "Lakeview": [41.9436, -87.6552],
+        "Logan Square": [41.9231, -87.7093],
+        "Little Village": [41.8459, -87.7058],
+        "Rogers Park": [42.0094, -87.6706],
+        "Humboldt Park": [41.9023, -87.7070],
+        "Uptown": [41.9665, -87.6533],
+        "West Loop": [41.8825, -87.6447],
+        "South Loop": [41.8660, -87.6256],
+        "Loop": [41.8781, -87.6298],
+        "Near North Side": [41.8988, -87.6335],
+        "Near West Side": [41.8795, -87.6635],
+        "South Shore": [41.7601, -87.5752],
+        "West Town": [41.8953, -87.6713],
+        "Bridgeport": [41.8358, -87.6480]
+      };
+
+      const dbMemories = snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
         let coords = data.coordinates;
         
-        if (coords && coords.length === 2) {
+        let needsUpdate = false;
+        
+        // Ensure memory is bound to its neighborhood
+        if (data.neighborhood && neighborhoodCoords[data.neighborhood]) {
+           const nCenter = neighborhoodCoords[data.neighborhood];
+           
+           if (!data.address) {
+             // If missing address, restrict tightly to neighborhood center
+             if (!coords || Math.abs(coords[0] - nCenter[0]) > 0.005 || Math.abs(coords[1] - nCenter[1]) > 0.005) {
+                 coords = [nCenter[0] + (Math.random() - 0.5) * 0.002, nCenter[1] + (Math.random() - 0.5) * 0.002];
+                 needsUpdate = true;
+             }
+           } else {
+             // If it has an address but resolved completely outside the neighborhood (e.g. > 0.03 degrees / ~3km away)
+             // It means the geocoder likely picked the wrong location (e.g. a different branch of a venue)
+             if (!coords || Math.abs(coords[0] - nCenter[0]) > 0.03 || Math.abs(coords[1] - nCenter[1]) > 0.03) {
+                 coords = [nCenter[0] + (Math.random() - 0.5) * 0.002, nCenter[1] + (Math.random() - 0.5) * 0.002];
+                 needsUpdate = true;
+             }
+           }
+        }
+        
+        if (coords && coords.length === 2 && !needsUpdate) {
           const lat = coords[0];
           let lng = coords[1];
           let inLake = false;
@@ -54,14 +100,18 @@ export const memoryService = {
 
           if (inLake) {
              coords = [lat, lng - 0.05];
+             needsUpdate = true;
           }
         }
 
+        if (needsUpdate && auth.currentUser && auth.currentUser.uid === data.authorId) {
+            updateDoc(doc(db, COLLECTION_NAME, docSnap.id), { coordinates: coords }).catch(e => console.warn('Could not update coords', e));
+        }
+
         return {
-          id: doc.id,
+          id: docSnap.id,
           ...data,
           coordinates: coords,
-          // Convert timestamp to string if it's a Firestore Timestamp
           timestamp: data.timestamp instanceof Timestamp ? data.timestamp.toDate().toISOString() : data.timestamp
         } as Memory;
       });
@@ -192,6 +242,35 @@ export const memoryService = {
       return newComment;
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
+      throw error;
+    }
+  },
+
+  deleteMemory: async (memoryId: string): Promise<void> => {
+    if (!auth.currentUser) throw new Error('Must be signed in to delete');
+    const path = `${COLLECTION_NAME}/${memoryId}`;
+    try {
+      if (memoryId.startsWith('mock_')) {
+        const index = MOCK_MEMORIES.findIndex(m => m.id === memoryId);
+        if (index !== -1) {
+          MOCK_MEMORIES.splice(index, 1);
+        }
+        return;
+      }
+      
+      const docRef = doc(db, COLLECTION_NAME, memoryId);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        // Already deleted or doesn't exist
+        return;
+      }
+      if (docSnap.data().authorId === auth.currentUser.uid) {
+        await deleteDoc(docRef);
+      } else {
+        throw new Error(`Not authorized to delete this echo: ${docSnap.data().authorId} vs ${auth.currentUser.uid}`);
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
       throw error;
     }
   },

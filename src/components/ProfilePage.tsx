@@ -5,6 +5,8 @@ import { auth } from '../lib/firebase';
 import { signInWithGoogle } from '../lib/firebase';
 import { Memory } from '../types';
 import { memoryService } from '../services/memoryService';
+import savedEmptyStateImage from '../assets/images/empty_saved_echoes_1780002660397.png';
+import myEchoesEmptyStateImage from '../assets/images/empty_my_echoes_1780002683330.png';
 
 interface ProfilePageProps {
   onClose: () => void;
@@ -202,12 +204,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                  <div className="w-16 h-16 bg-white/5 rounded-full mx-auto flex items-center justify-center mb-6">
-                    <Heart className="w-8 h-8 text-zinc-700" />
+                <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10 overflow-hidden relative">
+                  <div className="absolute inset-0 opacity-20 pointer-events-none">
+                    <img src={savedEmptyStateImage} alt="" className="w-full h-full object-cover" />
                   </div>
-                  <h4 className="text-xl font-display font-medium text-zinc-500 mb-2">Your collection is empty</h4>
-                  <p className="text-sm text-zinc-700">Explore the map and save memories that resonate with you.</p>
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-16 h-16 bg-white/5 rounded-full mx-auto flex items-center justify-center mb-6 bg-clip-padding backdrop-filter backdrop-blur-md border border-white/10">
+                      <Heart className="w-8 h-8 text-zinc-400" />
+                    </div>
+                    <h4 className="text-xl font-display font-medium text-white mb-2">Your collection is empty</h4>
+                    <p className="text-sm text-zinc-400">Explore the map and save memories that resonate with you.</p>
+                  </div>
                 </div>
               )
             ) : (
@@ -257,12 +264,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose, onMemoryClick
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                  <div className="w-16 h-16 bg-white/5 rounded-full mx-auto flex items-center justify-center mb-6">
-                    <User className="w-8 h-8 text-zinc-700" />
+                <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10 overflow-hidden relative">
+                  <div className="absolute inset-0 opacity-20 pointer-events-none">
+                     <img src={myEchoesEmptyStateImage} alt="" className="w-full h-full object-cover" />
                   </div>
-                  <h4 className="text-xl font-display font-medium text-zinc-500 mb-2">You haven't shared any Echoes yet</h4>
-                  <p className="text-sm text-zinc-700">Record a unique story to share it with your neighbors.</p>
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-16 h-16 bg-white/5 rounded-full mx-auto flex items-center justify-center mb-6 bg-clip-padding backdrop-filter backdrop-blur-md border border-white/10">
+                      <Mic className="w-8 h-8 text-zinc-400" />
+                    </div>
+                    <h4 className="text-xl font-display font-medium text-white mb-2">You haven't shared any Echoes yet</h4>
+                    <p className="text-sm text-zinc-400">Record a unique story to share it with your neighbors.</p>
+                  </div>
                 </div>
               )
             )}

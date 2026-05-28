@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Memory, Comment } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calendar, User, Tag, MapPin, Feather, ArrowLeft, MessageSquare, Send, Heart } from 'lucide-react';
+import { X, Calendar, User, Tag, MapPin, Feather, ArrowLeft, MessageSquare, Send, Heart, Trash2 } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { memoryService } from '../services/memoryService';
 
@@ -10,14 +10,17 @@ interface MemoryPanelProps {
   onClose: () => void;
   isSaved?: boolean;
   onSaveToggle?: (memoryId: string) => void;
+  onDelete?: (memoryId: string) => void;
+  onLike?: (memoryId: string) => void;
 }
 
-export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSaved, onSaveToggle }) => {
+export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSaved, onSaveToggle, onDelete, onLike }) => {
   const [commentText, setCommentText] = useState('');
   const [localComments, setLocalComments] = useState<Comment[]>([]);
   const [reactions, setReactions] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasLiked, setHasLiked] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const currentUser = auth.currentUser;
 
   useEffect(() => {
@@ -25,6 +28,7 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
       setLocalComments(memory.comments || []);
       setReactions(memory.reactions || 0);
       setHasLiked(false);
+      setIsConfirmingDelete(false);
     }
   }, [memory]);
 
@@ -41,6 +45,9 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
       await memoryService.likeMemory(memory.id);
       setReactions(prev => prev + 1);
       setHasLiked(true);
+      if (onLike) {
+        onLike(memory.id);
+      }
     } catch (err) {
       console.error('Failed to like memory:', err);
     }
@@ -296,6 +303,39 @@ export const MemoryPanel: React.FC<MemoryPanelProps> = ({ memory, onClose, isSav
               Share Echo
             </button>
           </div>
+          {currentUser && currentUser.uid === memory.authorId && (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              {!isConfirmingDelete ? (
+                <button 
+                  onClick={() => setIsConfirmingDelete(true)}
+                  className="w-full py-3 px-6 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Echo
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setIsConfirmingDelete(false)}
+                    className="flex-1 py-3 px-6 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (memory.id && onDelete) {
+                        onDelete(memory.id);
+                      }
+                    }}
+                    className="flex-1 py-3 px-6 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Confirm Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </motion.div>
     </AnimatePresence>
